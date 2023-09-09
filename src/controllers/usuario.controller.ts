@@ -11,6 +11,7 @@ import {
   del,
   get,
   getModelSchemaRef,
+  HttpErrors,
   param,
   patch,
   post,
@@ -18,8 +19,9 @@ import {
   requestBody,
   response,
 } from '@loopback/rest';
-import {Usuario} from '../models';
-import {UsuarioRepository} from '../repositories';
+import {Credenciales, FactorDeAutenticacionPorCodigo, Usuario} from '../models';
+import {Login} from '../models/login.model';
+import {LoginRepository, UsuarioRepository} from '../repositories';
 import {SeguridadUsuarioService} from '../services';
 
 export class UsuarioController {
@@ -28,6 +30,7 @@ export class UsuarioController {
     public usuarioRepository: UsuarioRepository,
     @service(SeguridadUsuarioService)
     public servicioSeguridad: SeguridadUsuarioService,
+    @repository(Login) public loginRepository: LoginRepository,
   ) {}
 
   @post('/usuario')
@@ -49,7 +52,7 @@ export class UsuarioController {
     usuario: Omit<Usuario, '_id'>,
   ): Promise<Usuario> {
     // crear la clave
-    const clave = this.servicioSeguridad.crearClave();
+    const clave = this.servicioSeguridad.crearTextoAleatorio();
     // cifrar la clave
     const claveCifrada = this.servicioSeguridad.cifrarTexto(clave);
     // asignar la clave cifrada al usuario
@@ -157,5 +160,68 @@ export class UsuarioController {
   })
   async deleteById(@param.path.string('id') id: string): Promise<void> {
     await this.usuarioRepository.deleteById(id);
+  }
+
+  /* Métodos personalizados para la API */
+
+  @post('/identificar-usuario')
+  @response(200, {
+    description: 'Identificar usuario por correo y clave',
+    content: {'application/json': {schema: getModelSchemaRef(Usuario)}},
+  })
+  async identificarUsuario(
+    @requestBody({
+      content: {
+        'application/json': {
+          schema: getModelSchemaRef(Credenciales),
+        },
+      },
+    })
+    credenciales: Credenciales,
+  ): Promise<Object> {
+    const usuario =
+      await this.servicioSeguridad.identificarUsuario(credenciales);
+
+    if (usuario) {
+      const codigo2fa = this.servicioSeguridad.crearTextoAleatorio(5);
+      const login: Login = new Login();
+      login.usuarioId = usuario._id!; //<-- si o si
+      login.codigo2fa = codigo2fa;
+      login.estadoCodigo2fa = false;
+      login.token = '';
+      login.estadoToken = false;
+      await this.loginRepository.create(login);
+      //* notificar al usuario por correo o vía sms
+      return usuario;
+    }
+
+    return new HttpErrors[401]('Las credenciales no son correctas');
+  }
+
+  @post('/verificar-2fa')
+  @response(200, {
+    description: 'Verificar el código 2fa',
+  })
+  async verificarCodigo2fa(
+    @requestBody({
+      content: {
+        'application/json': {
+          schema: getModelSchemaRef(FactorDeAutenticacionPorCodigo),
+        },
+      },
+    })
+    credenciales: FactorDeAutenticacionPorCodigo,
+  ): Promise<Object> {
+    const usuario = await this.servicioSeguridad.validarCodigo2fa(credenciales);
+    if (usuario) {
+      const token = await this.servicioSeguridad.crearToken(usuario);
+      usuario.clave = '';
+      return {
+        user: usuario,
+        token,
+      };
+    }
+
+    return new HttpErrors[401]('Las credenciales no son correctas');
   }
 }
