@@ -20,7 +20,7 @@ export class Menu extends Entity {
   @property({
     type: 'string',
   })
-  descripcion?: string;
+  comentarios?: string;
 
   @hasMany(() => Rol, {through: {model: () => RolMenu}})
   roles: Rol[];

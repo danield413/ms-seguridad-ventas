@@ -13,6 +13,12 @@ export class RolMenu extends Entity {
     type: 'boolean',
     required: true,
   })
+  listar: boolean;
+
+  @property({
+    type: 'boolean',
+    required: true,
+  })
   guardar: boolean;
 
   @property({
@@ -20,12 +26,6 @@ export class RolMenu extends Entity {
     required: true,
   })
   editar: boolean;
-
-  @property({
-    type: 'boolean',
-    required: true,
-  })
-  listar: boolean;
 
   @property({
     type: 'boolean',
