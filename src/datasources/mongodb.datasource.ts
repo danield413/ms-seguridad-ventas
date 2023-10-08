@@ -1,10 +1,12 @@
 import {inject, lifeCycleObserver, LifeCycleObserver} from '@loopback/core';
 import {juggler} from '@loopback/repository';
+import { ConfiguracionSeguridad } from '../config/seguridad.config';
 
+console.log(process.env.MONGO_CNN)
 const config = {
   name: 'mongodb',
   connector: 'mongodb',
-  url: 'mongodb+srv://admin:fBacXsyAB0bG1nk9@clustermongo.sjvglz8.mongodb.net/seguridad_ventas?retryWrites=true&w=majority',
+  url: ConfiguracionSeguridad.mongodbConnectionString,
   host: 'localhost',
   port: 27017,
   user: '',
@@ -12,6 +14,7 @@ const config = {
   database: 'seguridad_ventas',
   useNewUrlParser: true
 };
+
 
 // Observe application's life cycle to disconnect the datasource when
 // application is stopped. This allows the application to be shut down
