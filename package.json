@@ -57,11 +57,13 @@
     "@loopback/rest-explorer": "^6.1.2",
     "@loopback/security": "^0.10.3",
     "@loopback/service-proxy": "^6.1.2",
+    "axios": "^1.5.1",
     "crypto-js": "^4.1.1",
     "dotenv": "^16.3.1",
     "generate-password": "^1.7.0",
     "jsonwebtoken": "^9.0.2",
     "loopback-connector-mongodb": "^5.6.0",
+    "node-fetch": "^3.3.2",
     "parse-bearer-token": "^1.0.1",
     "tslib": "^2.0.0"
   },
@@ -72,6 +74,6 @@
     "@types/node": "^16.18.40",
     "eslint": "^8.47.0",
     "source-map-support": "^0.5.21",
-    "typescript": "~5.1.6"
+    "typescript": "~5.2.2"
   }
 }
